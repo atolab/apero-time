@@ -3,24 +3,19 @@ open Time
 open Timestamp
 open Clock
 
-module HLC: sig
+module type HLC = sig
 
   type hlc_error = [ `DeltaExceed of Uuid.t * int64 * Time.t * Time.t ]
 
-  module type S = sig
-    val update_with_clock:  unit -> Timestamp.t Lwt.t
-    val update_with_message: Timestamp.t -> (Timestamp.t, hlc_error) Result.t  Lwt.t
-  end
 
-  module type Config = sig    
-    val id: Uuid.t
-    val csize: int
-    val delta: int64
-  end
+  val update_with_clock:  unit -> Timestamp.t Lwt.t
+  (** [update_with_clock()] updates the HLC with the local time and returns a new [Timestamp]
+       which is greater than any previously returned timestamp *)
 
-  (* module Make (C: Config) (MVar: MVar) (Clk: Clock) : S  *)
-
-  val create:  Uuid.t -> int -> float -> (module Clock) -> (module S)
-  (** [create id csize delta] creates a new HLC for the source with [id], using a counter of [csize] bits and a [delta] in seconds *)
+  val update_with_timestamp: Timestamp.t -> (Timestamp.t, hlc_error) Result.t  Lwt.t
+  (** [update_with_timestamp ()] updates the HLC with the timestamp from an incoming message and returns a new [Timestamp]
+       which is greater than the provided timestamp and than any previously returned timestamp *)
 
 end
+
+val hlc_create:  Uuid.t -> int -> float -> (module Clock) -> (module HLC)

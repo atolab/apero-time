@@ -9,7 +9,7 @@ let check_if b ?arg line =
     Alcotest.(check bool) test_name b
 
 
-module MyHLC = (val HLC.create (Apero.Uuid.make_from_alias "id1") 8 0.1 (module UnixClock: Clock): HLC.S)
+module MyHLC = (val hlc_create (Apero.Uuid.make_from_alias "id1") 8 0.1 (module UnixClock: Clock): HLC)
 
 
 let print_ts ts = Printf.printf "%s\n" (Timestamp.to_string ts)
