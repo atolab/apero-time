@@ -1,6 +1,7 @@
 open Apero
 open Time
 open Timestamp
+open Clock
 
 module HLC: sig
 
@@ -17,9 +18,9 @@ module HLC: sig
     val delta: int64
   end
 
-  module Make (C: Config) (MVar: MVar): S 
+  (* module Make (C: Config) (MVar: MVar) (Clk: Clock) : S  *)
 
-  val create:  Uuid.t -> int -> float -> (module S)
+  val create:  Uuid.t -> int -> float -> (module Clock) -> (module S)
   (** [create id csize delta] creates a new HLC for the source with [id], using a counter of [csize] bits and a [delta] in seconds *)
 
 end

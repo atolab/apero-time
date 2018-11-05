@@ -1,6 +1,3 @@
 open Clock
 
-module UnixClock: sig
-  include Clock
-
-end
+module UnixClock: Clock

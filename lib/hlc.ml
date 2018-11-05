@@ -1,7 +1,7 @@
 open Apero
 open Time
 open Timestamp
-open UnixClock
+open Clock
 
 module HLC = struct
 
@@ -19,7 +19,7 @@ module HLC = struct
   end
 
 
-  module Make (C: Config) (MVar: MVar) = struct
+  module Make (C: Config) (MVar: MVar) (Clk: Clock) = struct
 
     let last_time = MVar.create 0L
 
@@ -35,7 +35,7 @@ module HLC = struct
 
     let update_with_clock () =
       let open Int64 in
-      let pt = get_l (UnixClock.now()) in
+      let pt = get_l (Clk.now()) in
       MVar.guarded last_time @@ fun time ->
         let l' = get_l time in
         let l = max l' pt in
@@ -46,7 +46,7 @@ module HLC = struct
 
     let update_with_message timestamp =
       let open Int64 in
-      let now = UnixClock.now() in
+      let now = Clk.now() in
       let msg_time = Timestamp.get_time timestamp in
       if sub (sub msg_time now) C.delta > 0L then
         let source = Timestamp.get_source timestamp in
@@ -72,15 +72,12 @@ module HLC = struct
 
   end
 
-
-  let create id csize delta =
+  let create id csize delta (module C: Clock) =
     let module M = Make (struct
       let id = id
       let csize = csize
       let delta = Time.of_seconds delta
-    end) (MVar_lwt)
+    end) (MVar_lwt) (C)
     in (module M : S)
-
-
 end
 
