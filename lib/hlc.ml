@@ -5,6 +5,9 @@ open Clock
 
 module type HLC = sig
 
+  module Time: Time
+  module Timestamp: Timestamp.S
+
   type hlc_error = [ `DeltaExceed of Uuid.t * int64 * Time.t * Time.t ]
 
   val update_with_clock:  unit -> Timestamp.t Lwt.t
@@ -18,7 +21,10 @@ module type Config = sig
   val delta: int64
 end
 
-module Make (C: Config) (MVar: MVar) (Clk: Clock) = struct
+module Make (C: Config) (MVar: MVar) (Clk: Clock with type Time.t = int64) = struct
+
+  module Time = Clk.Time
+  module Timestamp = Timestamp.Make(Time)
 
   type hlc_error = [ `DeltaExceed of Uuid.t * int64 * Time.t * Time.t ]
 
@@ -73,11 +79,11 @@ module Make (C: Config) (MVar: MVar) (Clk: Clock) = struct
 
 end
 
-let hlc_create id csize delta (module C: Clock) =
+let hlc_create id csize delta (module C: Clock with type Time.t = int64) =
   let module M = Make (struct
     let id = id
     let csize = csize
-    let delta = Time.of_seconds delta
+    let delta = C.Time.of_seconds delta
   end) (MVar_lwt) (C)
   in (module M : HLC)
 

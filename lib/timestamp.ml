@@ -3,26 +3,46 @@ open Time
 
 module Timestamp = struct
   
-  module T = struct
-    type t = {
-        id: Uuid.t;
-        time: Time.t;
-    }
-    let compare t t' =
-      let time_compare = Time.compare t.time t'.time in
-      if time_compare != 0 then time_compare else Uuid.compare t.id t'.id
+  module type S = sig
+    module Time: Time
 
-    let create (id:Uuid.t) (time:Time.t) = { id; time; }
-    let get_source t = t.id
-    let get_time t = t.time
-    let to_string t = Time.to_string t.time ^"/"^ Uuid.to_string t.id
+    module T: sig
+      type t
+      val compare: t -> t -> int
+    end
+
+    include (module type of Ordered.Make (T))
+
+    val create: Uuid.t -> Time.t -> t
+    val get_source: t -> Uuid.t
+    val get_time: t -> Time.t
+    val to_string: t -> string
   end
 
-  include Ordered.Make (T)
+  module Make (T: Time) = struct
 
-  let create = T.create
-  let get_source = T.get_source
-  let get_time = T.get_time
-  let to_string = T.to_string
+    module Time = T
 
+    module T = struct
+      type t = {
+          id: Uuid.t;
+          time: Time.t;
+      }
+      let compare t t' =
+        let time_compare = T.compare t.time t'.time in
+        if time_compare != 0 then time_compare else Uuid.compare t.id t'.id
+
+      let create (id:Uuid.t) (time:Time.t) = { id; time; }
+      let get_source t = t.id
+      let get_time t = t.time
+      let to_string t = T.to_string t.time ^"/"^ Uuid.to_string t.id
+    end
+
+    include Ordered.Make (T)
+
+    let create = T.create
+    let get_source = T.get_source
+    let get_time = T.get_time
+    let to_string = T.to_string
+  end
 end

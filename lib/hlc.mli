@@ -5,6 +5,9 @@ open Clock
 
 module type HLC = sig
 
+  module Time: Time
+  module Timestamp: Timestamp.S
+
   type hlc_error = [ `DeltaExceed of Uuid.t * int64 * Time.t * Time.t ]
 
 
@@ -18,4 +21,4 @@ module type HLC = sig
 
 end
 
-val hlc_create:  Uuid.t -> int -> float -> (module Clock) -> (module HLC)
+val hlc_create:  Uuid.t -> int -> float -> (module Clock with type Time.t = int64) -> (module HLC)
