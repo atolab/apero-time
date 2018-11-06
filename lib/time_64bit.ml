@@ -1,6 +1,6 @@
-open Time 
+open Physical_time 
 
-module Time_int64 : Time with type t = int64 = struct
+module Time_64bit : Physical_time with type t = int64 = struct
   include Apero.Ordered.Make(Int64)
 
   let pow_2_32f = Int64.to_float 0x100000000L

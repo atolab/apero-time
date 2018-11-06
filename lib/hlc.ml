@@ -1,5 +1,6 @@
 open Apero
 open Time
+open Time_64bit
 open Timestamp
 open Clock
 
@@ -18,10 +19,10 @@ end
 module type Config = sig
   val id: Uuid.t
   val csize: int
-  val delta: int64
+  val delta: Time_64bit.t
 end
 
-module Make (C: Config) (MVar: MVar) (Clk: Clock with type Time.t = int64) = struct
+module Make (C: Config) (MVar: MVar) (Clk: Clock with type Time.t = Time_64bit.t) = struct
 
   module Time = Clk.Time
   module Timestamp = Timestamp.Make(Time)
@@ -79,11 +80,11 @@ module Make (C: Config) (MVar: MVar) (Clk: Clock with type Time.t = int64) = str
 
 end
 
-let hlc_create id csize delta (module C: Clock with type Time.t = int64) =
+let hlc_create id csize delta (module C: Clock with type Time.t = Time_64bit.t) =
   let module M = Make (struct
     let id = id
     let csize = csize
-    let delta = C.Time.of_seconds delta
+    let delta = Time_64bit.of_seconds delta
   end) (MVar_lwt) (C)
   in (module M : HLC)
 

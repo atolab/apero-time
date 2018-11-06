@@ -1,5 +1,6 @@
 open Apero
 open Time
+open Time_64bit
 open Timestamp
 open Clock
 
@@ -21,4 +22,4 @@ module type HLC = sig
 
 end
 
-val hlc_create:  Uuid.t -> int -> float -> (module Clock with type Time.t = int64) -> (module HLC)
+val hlc_create:  Uuid.t -> int -> float -> (module Clock with type Time.t = Time_64bit.t) -> (module HLC)
