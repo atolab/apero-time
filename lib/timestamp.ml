@@ -9,6 +9,7 @@ module Timestamp = struct
     module T: sig
       type t
       val compare: t -> t -> int
+      val equal: t -> t -> bool
     end
 
     include (module type of Ordered.Make (T))
@@ -31,6 +32,7 @@ module Timestamp = struct
       let compare t t' =
         let time_compare = T.compare t.time t'.time in
         if time_compare != 0 then time_compare else Uuid.compare t.id t'.id
+      let equal t t' = T.equal t.time t'.time && Uuid.equal t.id t'.id
 
       let create (id:Uuid.t) (time:Time.t) = { id; time; }
       let get_source t = t.id

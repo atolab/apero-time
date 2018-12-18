@@ -9,6 +9,7 @@ module Timestamp : sig
     module T: sig
       type t
       val compare: t -> t -> int
+      val equal: t -> t -> bool
     end
 
     include (module type of Ordered.Make (T))
