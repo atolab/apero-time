@@ -13,4 +13,5 @@ module type Time = sig
   val decode: IOBuf.t -> (t * IOBuf.t, Atypes.error) Result.t
 
   val pp: Format.formatter -> t -> unit
+
 end

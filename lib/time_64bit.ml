@@ -32,8 +32,16 @@ module Time_64bit : Physical_time with type t = int64 = struct
 
   let before t t' = t' < t
 
-  let to_string t =
+  let to_string = Int64.to_string
+
+  let of_string = Int64.of_string_opt
+
+  let encode = Apero.encode_vle
+
+  let decode = Apero.decode_vle
+
+  let pp ppf t =
     let tm = Unix.gmtime @@ to_seconds t in
-    Printf.sprintf "%Ld->%d/%02d/%02d/%02d:%02d:%02d.%09Ld" t (tm.tm_year+1900) (tm.tm_mon+1) tm.tm_mday tm.tm_hour tm.tm_min tm.tm_sec (ns_part t)
+    Format.fprintf ppf "%d/%02d/%02d/%02d:%02d:%02d.%09Ld" (tm.tm_year+1900) (tm.tm_mon+1) tm.tm_mday tm.tm_hour tm.tm_min tm.tm_sec (ns_part t)
 
 end

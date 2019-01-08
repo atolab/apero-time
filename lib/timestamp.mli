@@ -17,8 +17,15 @@ module Timestamp : sig
     val create: Uuid.t -> Time.t -> t
     val get_source: t -> Uuid.t
     val get_time: t -> Time.t
+
     val to_string: t -> string
-  end
+    val of_string: string -> t option
+
+    val encode: t -> IOBuf.t -> (IOBuf.t, Atypes.error) Result.t
+    val decode: IOBuf.t -> (t * IOBuf.t, Atypes.error) Result.t
+
+    val pp: Format.formatter -> t -> unit
+end
 
   module Make (T: Time) : S with module Time = T
 

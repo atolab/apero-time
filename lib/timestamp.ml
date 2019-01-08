@@ -17,8 +17,15 @@ module Timestamp = struct
     val create: Uuid.t -> Time.t -> t
     val get_source: t -> Uuid.t
     val get_time: t -> Time.t
+
     val to_string: t -> string
-  end
+    val of_string: string -> t option
+
+    val encode: t -> IOBuf.t -> (IOBuf.t, Atypes.error) Result.t
+    val decode: IOBuf.t -> (t * IOBuf.t, Atypes.error) Result.t
+
+    val pp: Format.formatter -> t -> unit
+end
 
   module Make (T: Time) = struct
 
@@ -38,6 +45,31 @@ module Timestamp = struct
       let get_source t = t.id
       let get_time t = t.time
       let to_string t = T.to_string t.time ^"/"^ Uuid.to_string t.id
+
+      let of_string s =
+        match String.split_on_char '/' s with
+        | t::i::[] ->
+          (match (T.of_string t, Uuid.of_string i) with
+          | Some time, Some id -> Some { id; time }
+          | _ -> None)
+        | _ -> None
+
+      let encode t buf =
+        let open Result.Infix in
+        Time.encode t.time buf >>= fun buf ->
+        Uuid.encode t.id buf
+
+      let decode buf =
+        let open Result.Infix in
+        Time.decode buf >>= fun (time, buf) ->
+        Uuid.decode buf >>= fun (id, buf) ->
+        Result.ok ({ id; time; }, buf)
+
+      let pp ppf t =
+        Time.pp ppf t.time;
+        Format.pp_print_char ppf '-';
+        Format.pp_print_string ppf @@ Uuid.to_string t.id
+
     end
 
     include Ordered.Make (T)
@@ -46,5 +78,9 @@ module Timestamp = struct
     let get_source = T.get_source
     let get_time = T.get_time
     let to_string = T.to_string
+    let of_string = T.of_string
+    let encode = T.encode
+    let decode = T.decode
+    let pp = T.pp
   end
 end

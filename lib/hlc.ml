@@ -44,13 +44,13 @@ module Make (C: Config) (MVar: MVar) (Clk: Clock with type Time.t = Time_64bit.t
   let update_with_clock () =
     let open Int64 in
     let pt = get_l (Clk.now()) in
-    MVar.guarded last_time @@ fun time ->
+    MVar.guarded last_time @@
+    fun time ->
       let l' = get_l time in
       let l = max l' pt in
       let c = if (Int64.equal l l') then succ (get_c time) else 0L in
       let new_time = logor l c in
-      let _ = Logs.debug (fun m -> m "[HLC] update_with_clock: %Lx -> %Lx\n" time new_time) in
-      Lwt.return (Lwt.return @@ Timestamp.create C.id new_time, new_time)
+    MVar.return (Timestamp.create C.id new_time) new_time
 
   let update_with_timestamp timestamp =
     let open Int64 in
@@ -65,7 +65,8 @@ module Make (C: Config) (MVar: MVar) (Clk: Clock with type Time.t = Time_64bit.t
       let pt = get_l now in
       let lm = get_l msg_time in
       let cm = get_c msg_time in
-      MVar.guarded last_time @@ fun time ->
+      MVar.guarded last_time @@
+      fun time ->
         let l' = get_l time in
         let l = max3 l' msg_time pt in
         let c =
@@ -75,8 +76,7 @@ module Make (C: Config) (MVar: MVar) (Clk: Clock with type Time.t = Time_64bit.t
           else 0L
         in
         let new_time = logor l c in
-        let _ = Logs.debug (fun m -> m "[HLC] update_with_message %Lx: %Lx -> %Lx" msg_time time new_time) in
-        Lwt.return (Lwt.return (Result.return @@ Timestamp.create C.id new_time), new_time)
+      MVar.return (Result.return @@ Timestamp.create C.id new_time) new_time
 
 end
 
