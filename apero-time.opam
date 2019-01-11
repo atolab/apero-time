@@ -9,20 +9,15 @@ dev-repo:     "git://github.com/atolab/apero-time.git"
 license: "Apache-2.0"
 
 build: [
-  ["jbuilder" "build" "--only" "apero-net" "--root" "." "-j" jobs "@install"]
+ ["dune" "build" "--only" "apero-time" "--root" "." "-j" jobs "@install"]
 ]
-
 
 depends: [
   "dune"
-  "fmt" 
-  "logs" 
-  "lwt" 
-  "ppx_deriving" 
+  "fmt"
+  "logs"
+  "lwt"
+  "ppx_deriving"
   "lwt_ppx"
   "apero-core" {>= "0.4.0"}
 ]
-
-synopsis : "OCaml Time and Timestamps Library"
-description: """
-apero-time is collection of OCaml libraries providing Time and Timestamps."""
