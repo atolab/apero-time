@@ -4,22 +4,33 @@ open Time_64bit
 open Timestamp
 open Clock
 
-module type HLC = sig
+module HLC : sig
 
-  module Time: Time
-  module Timestamp: Timestamp.S
+  module type S = sig
 
-  type hlc_error = [ `DeltaExceed of Uuid.t * int64 * Time.t * Time.t ]
+    module Time: Time
+    module Timestamp: Timestamp.S
 
+    type t
 
-  val update_with_clock:  unit -> Timestamp.t Lwt.t
-  (** [update_with_clock()] updates the HLC with the local time and returns a new [Timestamp]
-       which is greater than any previously returned timestamp *)
+    type error = [ `DeltaExceed of Uuid.t * Time.t * Time.t * Time.t ]
 
-  val update_with_timestamp: Timestamp.t -> (Timestamp.t, hlc_error) Result.t  Lwt.t
-  (** [update_with_timestamp ()] updates the HLC with the timestamp from an incoming message and returns a new [Timestamp]
-       which is greater than the provided timestamp and than any previously returned timestamp *)
+    val create : ?csize:int -> ?delta:Time.t -> Uuid.t -> t
+    (** [create ?csize ?delta id] creates a new HLC using [id] as source identifier.
+        [csize] specifies the size of the counter part used within the 64-bit time represnetation (default: 8 bits).
+        [delta] specifies the maximum time drift accepted wrt. local time for an incoming timestamp (default: 100ms). *)
+
+    val new_timestamp:  t -> Timestamp.t Lwt.t
+    (** [new_timestamp ()] updates the HLC with the local time and returns a new [Timestamp]
+        which is greater than any previously returned timestamp *)
+
+    val update_with_timestamp: Timestamp.t -> t -> (unit, error) Result.t Lwt.t
+    (** [update_with_timestamp t] checks if the timestamp [t] (that should come from an incoming message)
+        doesn't exceeds the local time above the specified {! Config.delta }.
+        If not, the HLC is updated with this timestamps and will further create timestamps that are 
+        greater thant [t] and than any previously returned timestamp. *)
+  end
+
+  module Make (MVar: MVar) (Clk: Clock with type Time.t = Time_64bit.t): S
 
 end
-
-val hlc_create:  Uuid.t -> int -> float -> (module Clock with type Time.t = Time_64bit.t) -> (module HLC)

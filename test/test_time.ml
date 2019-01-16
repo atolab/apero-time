@@ -9,23 +9,21 @@ let check_if b ?arg line =
     Alcotest.(check bool) test_name b
 
 
+module HLC_Unix = HLC.Make (Apero.MVar_lwt) (Clock_unix)
+let hlc = HLC_Unix.create (Apero.Uuid.make_from_alias "id1")
 
-
-module MyHLC = (val hlc_create (Apero.Uuid.make_from_alias "id1") 8 0.1 (module Clock_unix): HLC)
-
-
-let print_ts ts = Printf.printf "%s\n" (MyHLC.Timestamp.to_string ts)
+let print_ts ts = Printf.printf "%s\n" (HLC_Unix.Timestamp.to_string ts)
 
 let test1 () =
-  let%lwt t1 = MyHLC.update_with_clock () in
-  let%lwt t2 = MyHLC.update_with_clock () in
-  let open MyHLC.Timestamp.Infix in
+  let%lwt t1 = HLC_Unix.new_timestamp hlc in
+  let%lwt t2 = HLC_Unix.new_timestamp hlc in
+  let open HLC_Unix.Timestamp.Infix in
   check_if true  __LINE__ @@ (t2 > t1);
   Lwt.return_unit
 
 let test2 () =
-  let l = List.init 10000 (fun _ -> Lwt_main.run @@MyHLC.update_with_clock ()) in
-  List.mapi (fun i t -> print_ts t; if i = 0 then true else MyHLC.Timestamp.Infix.(t > List.nth l (i-1))) l |>
+  let l = List.init 10000 (fun _ -> Lwt_main.run @@HLC_Unix.new_timestamp hlc) in
+  List.mapi (fun i t -> print_ts t; if i = 0 then true else HLC_Unix.Timestamp.Infix.(t > List.nth l (i-1))) l |>
   List.iter (check_if true  __LINE__)
 
 let all_tests = [
