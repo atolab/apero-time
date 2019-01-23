@@ -36,7 +36,7 @@ module Time_64bit : Physical_time with type t = int64 = struct
 
   let of_string = Int64.of_string_opt
 
-  let encode = Apero.encode_vle
+  let encode = Apero.encode_vle ?size:None
 
   let decode = Apero.decode_vle
 
