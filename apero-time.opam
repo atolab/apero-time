@@ -1,6 +1,6 @@
 opam-version: "2.0"
 version:"0.4.1"
-maintainer:   ["julien@adlink-labs.tech"]
+maintainer:   ["contact@adlink-labs.tech"]
 authors:      ["Julien Enoch"]
 homepage:     "https://github.com/atolab"
 bug-reports:  "https://github.com/atolab/apero-time/issues/"
