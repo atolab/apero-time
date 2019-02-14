@@ -28,7 +28,7 @@ module HLC = struct
         greater thant [t] and than any previously returned timestamp. *)
   end
 
-  module Make (MVar: MVar) (Clk: Clock with type Time.t = Time_64bit.t) = struct
+  module Make (Clk: Clock with type Time.t = Time_64bit.t) = struct
 
     module Time = Clk.Time
     module Timestamp = Timestamp.Make(Time)
@@ -37,7 +37,7 @@ module HLC = struct
              ; cmask: Time.t
              ; lmask: Time.t
              ; delta: Time.t
-             ; last_time: Time.t MVar.t }
+             ; last_time: Time.t Guard.t }
 
     type error = [ `DeltaExceed of Uuid.t * Time.t * Time.t * Time.t ]
 
@@ -45,7 +45,7 @@ module HLC = struct
     let create ?(csize=8) ?(delta=Time_64bit.of_seconds 0.1) id =
       let cmask = let open Int64 in sub (shift_left 1L csize) 1L in
       let lmask = Int64.lognot @@ cmask in
-      let last_time = MVar.create 0L in
+      let last_time = Guard.create 0L in
       { id; cmask; lmask; delta; last_time }
 
     let get_l time self = Int64.logand time self.lmask
@@ -58,13 +58,13 @@ module HLC = struct
     let new_timestamp self =
       let open Int64 in
       let pt = get_l (Clk.now ()) self in
-      MVar.guarded self.last_time @@
+      Guard.guarded self.last_time @@
       fun time ->
         let l' = get_l time self in
         let l = max l' pt in
         let c = if (Int64.equal l l') then succ (get_c time self) else 0L in
         let new_time = logor l c in
-      MVar.return (Timestamp.create self.id new_time) new_time
+      Guard.return (Timestamp.create self.id new_time) new_time
 
     let update_with_timestamp timestamp self =
       let open Int64 in
@@ -79,7 +79,7 @@ module HLC = struct
         let pt = get_l now self in
         let lm = get_l msg_time self in
         let cm = get_c msg_time self in
-        MVar.guarded self.last_time @@
+        Guard.guarded self.last_time @@
         fun time ->
           let l' = get_l time self in
           let l = max3 l' msg_time pt in
@@ -90,7 +90,7 @@ module HLC = struct
             else 0L
           in
           let new_time = logor l c in
-        MVar.return (Result.return ()) new_time
+        Guard.return (Result.return ()) new_time
 
   end
 end

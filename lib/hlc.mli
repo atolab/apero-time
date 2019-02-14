@@ -31,6 +31,6 @@ module HLC : sig
         greater thant [t] and than any previously returned timestamp. *)
   end
 
-  module Make (MVar: MVar) (Clk: Clock with type Time.t = Time_64bit.t): S
+  module Make (Clk: Clock with type Time.t = Time_64bit.t): S
 
 end
