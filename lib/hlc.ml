@@ -13,8 +13,6 @@ module HLC = struct
 
     type t
 
-    type error = [ `DeltaExceed of Uuid.t * Time.t * Time.t * Time.t ]
-
     val create : ?csize:int -> ?delta:Time.t -> Uuid.t -> t
 
     val new_timestamp:  t -> Timestamp.t Lwt.t
@@ -38,9 +36,6 @@ module HLC = struct
              ; lmask: Time.t
              ; delta: Time.t
              ; last_time: Time.t Guard.t }
-
-    type error = [ `DeltaExceed of Uuid.t * Time.t * Time.t * Time.t ]
-
 
     let create ?(csize=8) ?(delta=Time_64bit.of_seconds 0.1) id =
       let cmask = let open Int64 in sub (shift_left 1L csize) 1L in
@@ -70,11 +65,12 @@ module HLC = struct
       let open Int64 in
       let now = Clk.now() in
       let msg_time = Timestamp.get_time timestamp in
-      if sub (sub msg_time now) self.delta > 0L then
+      if (sub msg_time now) > self.delta then
         let source = Timestamp.get_source timestamp in
-        let _ = Logs.warn (fun m -> m "[HLC] incoming timestamp from %s exceeding delta %Ld is rejected: %Ld vs. now: %Ld"
-          (Uuid.to_string source) self.delta msg_time now) in
-        Lwt.return @@ Result.fail (`DeltaExceed (source, self.delta, msg_time, now))
+        let error_msg = Printf.sprintf "[HLC] incoming timestamp from %s exceeding delta %Ld is rejected: %Ld vs. now: %Ld"
+          (Uuid.to_string source) self.delta msg_time now in
+        let _ = Logs.warn (fun m -> m "%s" error_msg) in
+        Lwt.return @@ Result.fail (`OutOfRange (`Msg error_msg))
       else
         let pt = get_l now self in
         let lm = get_l msg_time self in

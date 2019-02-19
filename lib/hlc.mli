@@ -13,8 +13,6 @@ module HLC : sig
 
     type t
 
-    type error = [ `DeltaExceed of Uuid.t * Time.t * Time.t * Time.t ]
-
     val create : ?csize:int -> ?delta:Time.t -> Uuid.t -> t
     (** [create ?csize ?delta id] creates a new HLC using [id] as source identifier.
         [csize] specifies the size of the counter part used within the 64-bit time represnetation (default: 8 bits).
@@ -24,7 +22,7 @@ module HLC : sig
     (** [new_timestamp ()] updates the HLC with the local time and returns a new [Timestamp]
         which is greater than any previously returned timestamp *)
 
-    val update_with_timestamp: Timestamp.t -> t -> (unit, error) Result.t Lwt.t
+    val update_with_timestamp: Timestamp.t -> t -> (unit, Apero.error) Result.t Lwt.t
     (** [update_with_timestamp t] checks if the timestamp [t] (that should come from an incoming message)
         doesn't exceeds the local time above the specified {! Config.delta }.
         If not, the HLC is updated with this timestamps and will further create timestamps that are 
