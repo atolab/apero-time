@@ -21,8 +21,8 @@ module Timestamp = struct
     val to_string: t -> string
     val of_string: string -> t option
 
-    val encode: t -> IOBuf.t -> (IOBuf.t, Atypes.error) Result.t
-    val decode: IOBuf.t -> (t * IOBuf.t, Atypes.error) Result.t
+    val encode: t -> Abuf.t -> unit
+    val decode: Abuf.t -> t
 
     val pp: Format.formatter -> t -> unit
 end
@@ -55,15 +55,13 @@ end
         | _ -> None
 
       let encode t buf =
-        let open Result.Infix in
-        Time.encode t.time buf >>= fun buf ->
+        Time.encode t.time buf;
         Uuid.encode t.id buf
 
       let decode buf =
-        let open Result.Infix in
-        Time.decode buf >>= fun (time, buf) ->
-        Uuid.decode buf >>= fun (id, buf) ->
-        Result.ok ({ id; time; }, buf)
+        Time.decode buf |> fun time ->
+        Uuid.decode buf |> fun id ->
+        { id; time; }
 
       let pp ppf t =
         Time.pp ppf t.time;
