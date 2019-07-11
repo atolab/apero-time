@@ -22,3 +22,9 @@ depends: [
   "lwt_ppx"
   "apero-core" {>= "0.4.5"}
 ]
+
+
+synopsis : "OCaml Time Stamping Library"
+description: """
+apero-time is collection of OCaml modules that define an abstract time-stamping service along
+with a Hybrid Logical Clock implementation."""
