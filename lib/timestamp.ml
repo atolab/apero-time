@@ -65,7 +65,7 @@ end
 
       let pp ppf t =
         Time.pp ppf t.time;
-        Format.pp_print_char ppf '-';
+        Format.pp_print_string ppf " / ";
         Format.pp_print_string ppf @@ Uuid.to_string t.id
 
     end

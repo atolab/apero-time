@@ -7,6 +7,8 @@ module type Time = sig
   val to_string: t -> string
   val of_string: string -> t option
 
+  val to_rfc3339: t -> string
+
   val encode: t -> Abuf.t -> unit
   val decode: Abuf.t -> t
 
