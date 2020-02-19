@@ -1,5 +1,5 @@
 opam-version: "2.0"
-version:"0.4.7"
+version:"0.4.8"
 maintainer:   ["contact@adlink-labs.tech"]
 authors:      ["Julien Enoch"]
 homepage:     "https://github.com/atolab"
@@ -20,7 +20,7 @@ depends: [
   "lwt" {= "5.1.1" }
   "ppx_deriving"  {= "4.4" }
   "lwt_ppx"  {= "2.0.0" }
-  "apero-core" {= "0.4.7"}
+  "apero-core" {= "0.4.8"}
 ]
 
 
