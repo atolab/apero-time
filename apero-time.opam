@@ -1,5 +1,4 @@
 opam-version: "2.0"
-version:"0.4.8"
 maintainer:   ["contact@adlink-labs.tech"]
 authors:      ["Julien Enoch"]
 homepage:     "https://github.com/atolab"
@@ -9,7 +8,7 @@ dev-repo:     "git+https://github.com/atolab/apero-time.git"
 license: "Apache-2.0"
 
 build: [
- ["dune" "build" "--only" "apero-time" "--root" "." "-j" jobs "@install"]
+ ["dune" "build" "-p" name "-j" jobs]
 ]
 
 depends: [
